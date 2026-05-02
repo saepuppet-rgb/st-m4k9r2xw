@@ -386,6 +386,77 @@
     .nav-btn .nav-icon { font-size: 1.4rem; line-height: 1; }
     .nav-btn.active { color: var(--accent); }
 
+    /* ── Prompt Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.7);
+      align-items: flex-end;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-sheet {
+      width: 100%;
+      background: var(--bg2);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 18px 32px;
+      max-height: 80dvh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modal-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .modal-desc {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+    .prompt-box {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.82rem;
+      color: var(--text);
+      line-height: 1.6;
+      overflow-y: auto;
+      max-height: 200px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      flex-shrink: 0;
+    }
+    .modal-btns { display: flex; flex-direction: column; gap: 8px; }
+    .btn-copy {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #0f0f0f;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+    .btn-close-modal {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-sub);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.88rem;
+      padding: 12px;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
     /* ── Settings ── */
     .settings-card {
       background: var(--bg2);
@@ -591,6 +662,19 @@
 
     </div>
   </main>
+
+  <!-- プロンプトモーダル -->
+  <div class="modal-overlay" id="prompt-modal" onclick="closeModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-title">🔍 新刊検索プロンプト</div>
+      <div class="modal-desc">下のボタンでコピーして、Claudeアプリに貼り付けてください。</div>
+      <div class="prompt-box" id="prompt-text"></div>
+      <div class="modal-btns">
+        <button class="btn-copy" id="btn-copy" onclick="copyPrompt()">📋 プロンプトをコピー</button>
+        <button class="btn-close-modal" onclick="closeModalDirect()">閉じる</button>
+      </div>
+    </div>
+  </div>
 
   <nav class="bottom-nav">
     <button class="nav-btn active" id="nav-reg" onclick="showPane('reg')">
@@ -819,15 +903,39 @@
 
       const prompt = `以下の作品の最新刊または近日発売予定の新刊情報${optStr}を調べてください。${officialStr}\n\n${workLines}\n\n各作品について、タイトル・巻数・発売日・出版社を教えてください。`;
 
-      // PWA・スマホ対応: aタグ経由でブラウザで開く
-      const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // プロンプトをモーダルで表示してコピーさせる
+      document.getElementById('prompt-text').textContent = prompt;
+      document.getElementById('btn-copy').textContent = '📋 プロンプトをコピー';
+      document.getElementById('prompt-modal').classList.add('open');
+    }
+
+    function closeModal(e) {
+      if (e.target === document.getElementById('prompt-modal')) closeModalDirect();
+    }
+    function closeModalDirect() {
+      document.getElementById('prompt-modal').classList.remove('open');
+    }
+    async function copyPrompt() {
+      const text = document.getElementById('prompt-text').textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById('btn-copy');
+        btn.textContent = '✅ コピーしました！';
+        setTimeout(() => { btn.textContent = '📋 プロンプトをコピー'; }, 2000);
+      } catch {
+        // フォールバック
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        const btn = document.getElementById('btn-copy');
+        btn.textContent = '✅ コピーしました！';
+        setTimeout(() => { btn.textContent = '📋 プロンプトをコピー'; }, 2000);
+      }
     }
 
     function esc(s) {
