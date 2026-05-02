@@ -791,7 +791,11 @@
     }
 
     function searchWithClaude() {
-      if (works.length === 0) { alert('作品が登録されていません。'); return; }
+      if (works.length === 0) {
+        alert('作品が登録されていません。\n「登録」タブから作品を追加してください。');
+        showPane('reg');
+        return;
+      }
 
       const paper   = document.getElementById('opt-paper').checked;
       const digital = document.getElementById('opt-digital').checked;
@@ -815,7 +819,15 @@
 
       const prompt = `以下の作品の最新刊または近日発売予定の新刊情報${optStr}を調べてください。${officialStr}\n\n${workLines}\n\n各作品について、タイトル・巻数・発売日・出版社を教えてください。`;
 
-      window.location.href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+      // PWA・スマホ対応: aタグ経由でブラウザで開く
+      const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
     function esc(s) {
