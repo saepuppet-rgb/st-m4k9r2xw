@@ -815,7 +815,7 @@
 
       const prompt = `以下の作品の最新刊または近日発売予定の新刊情報${optStr}を調べてください。${officialStr}\n\n${workLines}\n\n各作品について、タイトル・巻数・発売日・出版社を教えてください。`;
 
-      window.open('https://claude.ai/new?q=' + encodeURIComponent(prompt), '_blank');
+      window.location.href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
     }
 
     function esc(s) {
