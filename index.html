@@ -385,6 +385,97 @@
 
     .nav-btn .nav-icon { font-size: 1.4rem; line-height: 1; }
     .nav-btn.active { color: var(--accent); }
+
+    /* ── Settings ── */
+    .settings-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .settings-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .settings-desc {
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .pat-input-wrap {
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .pat-input-wrap input {
+      padding-right: 44px;
+    }
+
+    .btn-toggle-pat {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 700;
+      padding: 12px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-appearance: none;
+      margin-bottom: 10px;
+    }
+
+    .btn-secondary:active { transform: scale(0.98); }
+
+    .sync-status {
+      font-size: 0.82rem;
+      text-align: center;
+      padding: 8px;
+      border-radius: 8px;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .sync-status.ok  { background: rgba(78,207,130,0.12); color: var(--novel); display: block; }
+    .sync-status.err { background: rgba(239,68,68,0.12);  color: #ef4444;      display: block; }
+    .sync-status.ing { background: rgba(232,197,71,0.08); color: var(--accent); display: block; }
+
+    .last-sync {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
   </style>
 </head>
 <body>
@@ -459,6 +550,46 @@
 
       <div class="work-list" id="work-list"></div>
     </div>
+
+    <!-- 設定パネル -->
+    <div class="pane" id="pane-settings">
+
+      <div class="settings-card">
+        <div class="settings-title">🔔 毎月自動チェック設定</div>
+        <div class="settings-desc">
+          GitHubに作品リストを同期すると、毎月1日に新刊情報を自動でチェックして
+          GitHubのIssueで通知します（メールにも届きます）。<br><br>
+          同期にはGitHub Personal Access Token（PAT）が必要です。
+        </div>
+
+        <div class="form-group">
+          <label for="input-pat">GitHub Personal Access Token</label>
+          <div class="pat-input-wrap">
+            <input type="password" id="input-pat" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+            <button class="btn-toggle-pat" onclick="togglePat()" id="btn-toggle-pat">👁</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="syncToGitHub()">☁️ GitHubに同期する</button>
+        <div class="sync-status" id="sync-status"></div>
+        <div class="last-sync" id="last-sync"></div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-title">📖 PATの取得方法</div>
+        <div class="settings-desc">
+          1. GitHub → 右上アイコン → Settings<br>
+          2. 左メニュー一番下「Developer settings」<br>
+          3. Personal access tokens → Tokens (classic)<br>
+          4. Generate new token (classic)<br>
+          5. Note に「新刊トラッカー」と入力<br>
+          6. Expiration を「No expiration」に設定<br>
+          7. スコープで <strong>repo</strong> にチェック<br>
+          8. Generate token → 表示されたトークンをコピー
+        </div>
+      </div>
+
+    </div>
   </main>
 
   <nav class="bottom-nav">
@@ -469,6 +600,10 @@
     <button class="nav-btn" id="nav-list" onclick="showPane('list')">
       <span class="nav-icon">📚</span>
       <span>リスト</span>
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="showPane('settings')">
+      <span class="nav-icon">⚙️</span>
+      <span>設定</span>
     </button>
   </nav>
 
@@ -572,6 +707,87 @@
       document.getElementById('pane-' + name).classList.add('active');
       document.getElementById('nav-' + name).classList.add('active');
       if (name === 'list') renderList();
+      if (name === 'settings') loadSettings();
+    }
+
+    // ── 設定・同期 ──
+    const OWNER = 'saepuppet-rgb';
+    const REPO  = 'st-m4k9r2xw';
+
+    function loadSettings() {
+      const pat = localStorage.getItem('github_pat') || '';
+      document.getElementById('input-pat').value = pat;
+      const last = localStorage.getItem('last_sync');
+      const el = document.getElementById('last-sync');
+      el.textContent = last
+        ? '最終同期: ' + new Date(last).toLocaleString('ja-JP')
+        : '未同期';
+    }
+
+    function togglePat() {
+      const inp = document.getElementById('input-pat');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    function showSyncStatus(msg, type) {
+      const el = document.getElementById('sync-status');
+      el.textContent = msg;
+      el.className = 'sync-status ' + type;
+    }
+
+    async function syncToGitHub() {
+      const pat = document.getElementById('input-pat').value.trim();
+      if (!pat) { alert('Personal Access Tokenを入力してください'); return; }
+      localStorage.setItem('github_pat', pat);
+
+      showSyncStatus('⏳ 同期中...', 'ing');
+
+      const payload = {
+        works: works,
+        lastUpdated: new Date().toISOString()
+      };
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+
+      try {
+        // 既存ファイルのSHAを取得（更新に必要）
+        let sha = null;
+        const getResp = await fetch(
+          `https://api.github.com/repos/${OWNER}/${REPO}/contents/books.json`,
+          { headers: { Authorization: `Bearer ${pat}`, Accept: 'application/vnd.github.v3+json' } }
+        );
+        if (getResp.ok) sha = (await getResp.json()).sha;
+
+        // ファイルを作成/更新
+        const body = {
+          message: `📚 作品リスト更新 ${new Date().toLocaleDateString('ja-JP')}`,
+          content,
+          ...(sha ? { sha } : {})
+        };
+        const putResp = await fetch(
+          `https://api.github.com/repos/${OWNER}/${REPO}/contents/books.json`,
+          {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${pat}`,
+              Accept: 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          }
+        );
+
+        if (putResp.ok) {
+          localStorage.setItem('last_sync', new Date().toISOString());
+          showSyncStatus(`✅ 同期完了（${works.length} 作品）`, 'ok');
+          document.getElementById('last-sync').textContent =
+            '最終同期: ' + new Date().toLocaleString('ja-JP');
+        } else {
+          const err = await putResp.json();
+          showSyncStatus('❌ エラー: ' + (err.message || putResp.status), 'err');
+        }
+      } catch (e) {
+        showSyncStatus('❌ 接続エラー。ネットワークを確認してください', 'err');
+      }
     }
 
     function searchWithClaude() {
