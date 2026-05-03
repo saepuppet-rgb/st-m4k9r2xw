@@ -875,7 +875,7 @@
         return line;
       }).join('\n');
 
-      const prompt = `以下の作品について、本日（${new Date().toLocaleDateString('ja-JP')}）以降に公式発表済みの電子書籍版の発売予定日を調べてください。発売済み・未発表の情報は不要です。\n\n${workLines}\n\n各作品について「巻数・発売日・価格（税込）」を簡潔にまとめてください。発売予定がない場合は「予定なし」とだけ記載してください。`;
+      const prompt = `以下の作品について、本日（${new Date().toLocaleDateString('ja-JP')}）以降に公式発表済みの発売予定を調べてください。発売済み・未発表の情報は不要です。\n\n${workLines}\n\n各作品について「巻数・発売日・価格（税込）」を簡潔にまとめてください。電子書籍版の発売日を優先し、不明な場合は紙版の発売日を記載してください。発売予定がない場合は「予定なし」とだけ記載してください。`;
 
       // プロンプトをモーダルで表示してコピーさせる
       document.getElementById('prompt-text').textContent = prompt;
