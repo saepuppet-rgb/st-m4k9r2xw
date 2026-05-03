@@ -16,18 +16,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f0f0f;
-      --bg2: #1a1a1a;
-      --bg3: #232323;
-      --accent: #e8c547;
-      --accent-dim: #b89a2a;
-      --text: #f0ede8;
-      --text-sub: #8a8580;
-      --manga: #5b9cf6;
-      --novel: #4ecf82;
-      --ln: #b57cf6;
-      --other: #f0864a;
-      --border: #2e2e2e;
+      --bg: #faf5ff;
+      --bg2: #ffffff;
+      --bg3: #f3eeff;
+      --accent: #a855f7;
+      --accent-dim: #9333ea;
+      --text: #1e1b2e;
+      --text-sub: #7c6f94;
+      --manga: #3b82f6;
+      --novel: #10b981;
+      --ln: #8b5cf6;
+      --other: #f97316;
+      --border: #e9d5ff;
       --radius: 12px;
     }
 
@@ -52,7 +52,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 18px;
-      background: rgba(15,15,15,0.85);
+      background: rgba(250,245,255,0.88);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
@@ -360,7 +360,7 @@
       right: 0;
       z-index: 100;
       display: flex;
-      background: rgba(15,15,15,0.92);
+      background: rgba(250,245,255,0.92);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid var(--border);
@@ -392,7 +392,7 @@
       position: fixed;
       inset: 0;
       z-index: 200;
-      background: rgba(0,0,0,0.7);
+      background: rgba(30,27,46,0.6);
       align-items: flex-end;
     }
     .modal-overlay.open { display: flex; }
@@ -901,7 +901,7 @@
       const optStr = opts.length ? `（${opts.join('・')}）` : '';
       const officialStr = official ? '公式発表済みのものだけ教えてください。' : '';
 
-      const prompt = `以下の作品の最新刊または近日発売予定の新刊情報${optStr}を調べてください。${officialStr}\n\n${workLines}\n\n各作品について、タイトル・巻数・発売日・出版社を教えてください。`;
+      const prompt = `以下の作品について、本日（${new Date().toLocaleDateString('ja-JP')}）以降に発売予定の新刊${optStr}を調べてください。${officialStr}発売済みの情報は不要です。\n\n${workLines}\n\n各作品について「巻数・発売日・価格（税込）」を簡潔にまとめてください。発売予定がない場合は「予定なし」とだけ記載してください。`;
 
       // プロンプトをモーダルで表示してコピーさせる
       document.getElementById('prompt-text').textContent = prompt;
