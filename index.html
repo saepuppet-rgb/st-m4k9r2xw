@@ -547,6 +547,15 @@
       border-top: 1px solid var(--border);
       margin: 16px 0;
     }
+
+    .backup-row {
+      display: flex;
+      gap: 8px;
+    }
+    .backup-row .btn-secondary {
+      flex: 1;
+      margin-bottom: 0;
+    }
   </style>
 </head>
 <body>
@@ -608,6 +617,19 @@
 
     <!-- 設定パネル -->
     <div class="pane" id="pane-settings">
+
+      <div class="settings-card">
+        <div class="settings-title">💾 バックアップ / 復元</div>
+        <div class="settings-desc">
+          キャッシュクリア前に必ずバックアップを保存してください。
+        </div>
+        <div class="backup-row">
+          <button class="btn-secondary" onclick="exportData()">⬇️ バックアップ保存</button>
+          <button class="btn-secondary" onclick="document.getElementById('import-file').click()">⬆️ 復元する</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <div class="sync-status" id="backup-status"></div>
+      </div>
 
       <div class="settings-card">
         <div class="settings-title">🔔 毎月自動チェック設定</div>
@@ -881,6 +903,50 @@
       document.getElementById('prompt-text').textContent = prompt;
       document.getElementById('btn-copy').textContent = '📋 プロンプトをコピー';
       document.getElementById('prompt-modal').classList.add('open');
+    }
+
+    // ── バックアップ / 復元 ──
+    function exportData() {
+      if (works.length === 0) { alert('登録作品がありません。'); return; }
+      const json = JSON.stringify({ works, exportedAt: new Date().toISOString() }, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const date = new Date().toLocaleDateString('ja-JP').replace(/\//g, '-');
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `shinkan-backup-${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      const el = document.getElementById('backup-status');
+      el.textContent = `✅ ${works.length}作品をバックアップしました`;
+      el.className = 'sync-status ok';
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          const imported = data.works || data;
+          if (!Array.isArray(imported)) throw new Error();
+          works = imported;
+          save();
+          updateHeader();
+          const el = document.getElementById('backup-status');
+          el.textContent = `✅ ${works.length}作品を復元しました`;
+          el.className = 'sync-status ok';
+        } catch {
+          const el = document.getElementById('backup-status');
+          el.textContent = '❌ ファイルが正しくありません';
+          el.className = 'sync-status err';
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
     }
 
     function closeModal(e) {
