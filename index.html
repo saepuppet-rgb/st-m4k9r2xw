@@ -601,22 +601,6 @@
         <button class="filter-chip"        data-filter="other" onclick="setFilter('other')">その他</button>
       </div>
 
-      <div class="search-options">
-        <div class="search-options-title">検索オプション</div>
-        <label class="checkbox-row">
-          <input type="checkbox" id="opt-paper" checked>
-          <span>紙書籍の発売日を含める</span>
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" id="opt-digital" checked>
-          <span>電子版の発売日を含める</span>
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" id="opt-official">
-          <span>公式発表のみ（未定作品を除外）</span>
-        </label>
-      </div>
-
       <button class="btn-search" onclick="searchWithClaude()">🔍 Claudeで新刊を検索</button>
 
       <div class="work-list" id="work-list"></div>
@@ -881,10 +865,6 @@
         return;
       }
 
-      const paper   = document.getElementById('opt-paper').checked;
-      const digital = document.getElementById('opt-digital').checked;
-      const official = document.getElementById('opt-official').checked;
-
       const filtered = currentFilter === 'all' ? works : works.filter(w => w.type === currentFilter);
       if (filtered.length === 0) { alert('表示中の作品がありません。'); return; }
 
@@ -895,13 +875,7 @@
         return line;
       }).join('\n');
 
-      const opts = [];
-      if (paper)   opts.push('紙書籍');
-      if (digital) opts.push('電子版');
-      const optStr = opts.length ? `（${opts.join('・')}）` : '';
-      const officialStr = official ? '公式発表済みのものだけ教えてください。' : '';
-
-      const prompt = `以下の作品について、本日（${new Date().toLocaleDateString('ja-JP')}）以降に発売予定の新刊${optStr}を調べてください。${officialStr}発売済みの情報は不要です。\n\n${workLines}\n\n各作品について「巻数・発売日・価格（税込）」を簡潔にまとめてください。発売予定がない場合は「予定なし」とだけ記載してください。`;
+      const prompt = `以下の作品について、本日（${new Date().toLocaleDateString('ja-JP')}）以降に公式発表済みの電子書籍版の発売予定日を調べてください。発売済み・未発表の情報は不要です。\n\n${workLines}\n\n各作品について「巻数・発売日・価格（税込）」を簡潔にまとめてください。発売予定がない場合は「予定なし」とだけ記載してください。`;
 
       // プロンプトをモーダルで表示してコピーさせる
       document.getElementById('prompt-text').textContent = prompt;
