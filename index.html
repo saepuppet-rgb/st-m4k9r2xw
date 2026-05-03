@@ -444,6 +444,20 @@
       cursor: pointer;
       -webkit-appearance: none;
     }
+    .btn-google {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      color: var(--accent);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
     .btn-close-modal {
       width: 100%;
       background: var(--bg3);
@@ -676,7 +690,8 @@
       <div class="modal-desc">下のボタンでコピーして、Claudeアプリに貼り付けてください。</div>
       <div class="prompt-box" id="prompt-text"></div>
       <div class="modal-btns">
-        <button class="btn-copy" id="btn-copy" onclick="copyPrompt()">📋 プロンプトをコピー</button>
+        <button class="btn-copy" id="btn-copy" onclick="copyPrompt()">📋 プロンプトをコピー（Claudeアプリ用）</button>
+        <button class="btn-google" onclick="searchGoogle()">🔍 Googleで検索（アプリ不要）</button>
         <button class="btn-close-modal" onclick="closeModalDirect()">閉じる</button>
       </div>
     </div>
@@ -947,6 +962,14 @@
       };
       reader.readAsText(file);
       event.target.value = '';
+    }
+
+    function searchGoogle() {
+      const filtered = currentFilter === 'all' ? works : works.filter(w => w.type === currentFilter);
+      const titles = filtered.map(w => `"${w.title}"`).join(' OR ');
+      const year = new Date().getFullYear();
+      const query = `(${titles}) 新刊 発売日 電子書籍 ${year}`;
+      window.open('https://www.google.com/search?q=' + encodeURIComponent(query), '_blank');
     }
 
     function closeModal(e) {
